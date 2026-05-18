@@ -33,5 +33,6 @@ jobs:
         with:
           name: job-results
           path: |
+            raw_jobs.csv
             jobs.csv
             jobs.md
