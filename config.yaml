@@ -14,9 +14,9 @@ target_locations:
   - Singapore
   - Hong Kong
 
-min_score: 35
-max_results: 50
-request_timeout: 15
+min_score: 10
+max_results: 80
+request_timeout: 20
 
 job_keywords:
   strong:
@@ -48,6 +48,10 @@ job_keywords:
     - 海外产品运营
     - 商业化运营
     - 产品市场
+    - 实习生招聘
+    - 应届生招聘
+    - 校园招聘
+    - 社会招聘
   medium:
     - AI
     - GenAI
@@ -65,6 +69,11 @@ job_keywords:
     - 社区
     - 产品运营
     - 市场
+    - 招聘
+    - 实习
+    - 校招
+    - 2026
+    - 2027
 
 exclude_keywords:
   - 算法工程师
@@ -100,8 +109,14 @@ exclude_keywords:
   - 总监
 
 company_urls:
-  - name: MiniMax
-    url: https://www.minimax.io/careers
+  - name: MiniMax Careers
+    url: https://minimaxi.com/careers
+  - name: MiniMax 全部职位
+    url: https://vrfi1sk8a0.jobs.feishu.cn/index/
+  - name: MiniMax 应届生招聘
+    url: https://vrfi1sk8a0.jobs.feishu.cn/379481/?category=&current=1&functionCategory=&job_hot_flag=&keywords=&limit=10&location=&project=7495675705720965415&tag=&type=
+  - name: MiniMax 实习生招聘
+    url: https://vrfi1sk8a0.jobs.feishu.cn/379481/?category=&current=1&functionCategory=&job_hot_flag=&keywords=&limit=10&location=&project=7352753013591755047%2C7572193079274801454&tag=&type=
   - name: Moonshot AI
     url: https://www.moonshot-ai.com/careers
   - name: PPIO
