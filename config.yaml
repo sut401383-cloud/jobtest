@@ -1,0 +1,130 @@
+target_locations:
+  - Remote
+  - China Remote
+  - Beijing
+  - Shanghai
+  - Hangzhou
+  - Shenzhen
+  - Guangzhou
+  - Chengdu
+  - Nanjing
+  - Suzhou
+  - Wuhan
+  - Xi'an
+  - Singapore
+  - Hong Kong
+
+min_score: 35
+max_results: 50
+request_timeout: 15
+
+job_keywords:
+  strong:
+    - AI海外增长
+    - AI出海增长
+    - 海外增长
+    - 海外增长运营
+    - 国际化增长
+    - Global Growth
+    - Growth Marketing
+    - Developer Relations
+    - 开发者生态
+    - 开发者社区
+    - 技术社区运营
+    - 开源生态运营
+    - AI产品运营
+    - API产品运营
+    - 模型API运营
+    - AI Agent运营
+    - 海外SEM
+    - 海外效果营销
+    - Google Ads
+    - Affiliate
+    - GTM
+    - B2B SaaS
+    - 出海营销
+    - 海外市场
+    - 海外用户增长
+    - 海外产品运营
+    - 商业化运营
+    - 产品市场
+  medium:
+    - AI
+    - GenAI
+    - SaaS
+    - API
+    - developer
+    - growth
+    - community
+    - marketing
+    - SEM
+    - affiliate
+    - 出海
+    - 增长
+    - 开发者
+    - 社区
+    - 产品运营
+    - 市场
+
+exclude_keywords:
+  - 算法工程师
+  - 机器学习工程师
+  - 大模型算法
+  - NLP算法
+  - CV算法
+  - 后端开发
+  - 前端开发
+  - Java开发
+  - C++开发
+  - 测试开发
+  - 运维开发
+  - Software Engineer
+  - Backend Engineer
+  - Frontend Engineer
+  - Machine Learning Engineer
+  - Research Scientist
+  - 平面设计
+  - UI设计
+  - 电话销售
+  - 地推
+  - 门店销售
+  - 纯小红书运营
+  - 纯抖音运营
+  - 主播
+  - 直播运营
+  - 3年以上
+  - 5年以上
+  - 高级
+  - 专家
+  - 负责人
+  - 总监
+
+company_urls:
+  - name: MiniMax
+    url: https://www.minimax.io/careers
+  - name: Moonshot AI
+    url: https://www.moonshot-ai.com/careers
+  - name: PPIO
+    url: https://ppio.com/careers
+  - name: SiliconFlow
+    url: https://www.siliconflow.cn/careers
+  - name: 智谱AI
+    url: https://www.zhipuai.cn/career
+  - name: BytePlus
+    url: https://www.byteplus.com/en/careers
+  - name: 火山引擎
+    url: https://www.volcengine.com/careers
+  - name: 阿里云
+    url: https://talent.alibaba.com
+  - name: 百度智能云
+    url: https://talent.baidu.com
+  - name: 科大讯飞
+    url: https://www.iflytek.com/careers
+  - name: 商汤科技
+    url: https://www.sensetime.com/cn/join-index
+  - name: SHOPLINE
+    url: https://www.shopline.com/careers
+  - name: XTransfer
+    url: https://www.xtransfer.com/cn/careers
+  - name: Dify / LangGenius
+    url: https://github.com/langgenius/dify
