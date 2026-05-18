@@ -10,33 +10,38 @@ JUNIOR_WORDS = ["实习", "intern", "校招", "2026", "应届", "new grad", "ent
 DOMESTIC_BONUS = ["北京", "上海", "杭州", "深圳", "广州", "成都", "南京", "苏州", "武汉", "西安", "remote", "远程"]
 
 
-def normalize(text: str) -> str:
-    return (text or "").lower().strip()
+def normalize(text: Any) -> str:
+    return str(text or "").lower().strip()
 
 
-def contains_any(text: str, words: list[str]) -> list[str]:
+def contains_any(text: Any, words: list[Any]) -> list[str]:
     low = normalize(text)
-    return [w for w in words if normalize(w) in low]
+    hits: list[str] = []
+    for w in words or []:
+        word = normalize(w)
+        if word and word in low:
+            hits.append(str(w))
+    return hits
 
 
-def summarize(text: str, max_len: int = 160) -> str:
-    text = re.sub(r"\s+", " ", text or "").strip()
+def summarize(text: Any, max_len: int = 160) -> str:
+    text = re.sub(r"\s+", " ", str(text or "")).strip()
     return text[:max_len] + ("..." if len(text) > max_len else "")
 
 
 def score_job(raw: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
-    title = raw.get("job_title") or raw.get("title") or ""
-    company = raw.get("company") or ""
-    location = raw.get("location") or ""
-    desc = raw.get("description") or raw.get("jd_summary") or ""
-    source = raw.get("source") or "unknown"
-    url = raw.get("job_url") or raw.get("url") or ""
+    title = str(raw.get("job_title") or raw.get("title") or "")
+    company = str(raw.get("company") or "")
+    location = str(raw.get("location") or "")
+    desc = str(raw.get("description") or raw.get("jd_summary") or "")
+    source = str(raw.get("source") or "unknown")
+    url = str(raw.get("job_url") or raw.get("url") or "")
     text_all = f"{title} {company} {location} {desc}"
 
-    strong = config.get("job_keywords", {}).get("strong", [])
-    medium = config.get("job_keywords", {}).get("medium", [])
-    exclude = config.get("exclude_keywords", [])
-    target_locations = config.get("target_locations", [])
+    strong = config.get("job_keywords", {}).get("strong", []) or []
+    medium = config.get("job_keywords", {}).get("medium", []) or []
+    exclude = config.get("exclude_keywords", []) or []
+    target_locations = config.get("target_locations", []) or []
 
     matched_title = contains_any(title, strong)
     matched_desc = contains_any(text_all, strong)
@@ -91,8 +96,8 @@ def score_job(raw: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
         "excluded_keywords": ", ".join(dict.fromkeys(excluded)),
         "score": score,
         "reason": "；".join(reasons),
-        "posted_date": raw.get("posted_date", ""),
-        "crawled_at": raw.get("crawled_at", ""),
+        "posted_date": str(raw.get("posted_date", "")),
+        "crawled_at": str(raw.get("crawled_at", "")),
     }
 
 
