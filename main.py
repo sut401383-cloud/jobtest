@@ -14,6 +14,7 @@ OUTPUT_FIELDS = [
     "company", "job_title", "location", "job_url", "source", "jd_summary", "matched_keywords",
     "excluded_keywords", "score", "reason", "posted_date", "crawled_at"
 ]
+RAW_FIELDS = ["company", "job_title", "location", "job_url", "source", "description", "posted_date", "crawled_at"]
 
 
 def load_config(path: str = "config.yaml") -> dict[str, Any]:
@@ -39,19 +40,35 @@ def crawl_all(config: dict[str, Any]) -> list[dict[str, Any]]:
     return jobs
 
 
-def write_csv(jobs: list[dict[str, Any]], path: str = "jobs.csv") -> None:
+def cap_per_company(jobs: list[dict[str, Any]], limit: int) -> list[dict[str, Any]]:
+    if limit <= 0:
+        return jobs
+    counts: dict[str, int] = {}
+    result: list[dict[str, Any]] = []
+    for job in jobs:
+        company = str(job.get("company") or "未知公司")
+        count = counts.get(company, 0)
+        if count >= limit:
+            continue
+        counts[company] = count + 1
+        result.append(job)
+    return result
+
+
+def write_csv(jobs: list[dict[str, Any]], path: str = "jobs.csv", fields: list[str] | None = None) -> None:
+    fieldnames = fields or OUTPUT_FIELDS
     with open(path, "w", encoding="utf-8-sig", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=OUTPUT_FIELDS)
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         for job in jobs:
-            writer.writerow({k: job.get(k, "") for k in OUTPUT_FIELDS})
+            writer.writerow({k: job.get(k, "") for k in fieldnames})
 
 
 def write_markdown(jobs: list[dict[str, Any]], total: int, path: str = "jobs.md") -> None:
-    lines = ["# AI 出海岗位匹配日报", "", f"今日抓取岗位：{total} 个", f"有效匹配岗位：{len(jobs)} 个", "", "## Top 10"]
+    lines = ["# AI 出海岗位匹配日报", "", f"今日抓取岗位：{total} 个", f"有效匹配岗位：{len(jobs)} 个", "", "## Top 20"]
     if not jobs:
         lines.append("暂无达到分数线的岗位。请检查 config.yaml 里的 company_urls 或降低 min_score。")
-    for i, job in enumerate(jobs[:10], 1):
+    for i, job in enumerate(jobs[:20], 1):
         lines.extend([
             f"### {i}. {job['company']} - {job['job_title']}",
             f"- 地点：{job.get('location') or '未注明'}",
@@ -68,12 +85,14 @@ def write_markdown(jobs: list[dict[str, Any]], total: int, path: str = "jobs.md"
 def main() -> None:
     config = load_config()
     raw_jobs = crawl_all(config)
+    write_csv(raw_jobs, path="raw_jobs.csv", fields=RAW_FIELDS)
     ranked = rank_jobs(raw_jobs, config)
+    ranked = cap_per_company(ranked, int(config.get("per_company_limit", 5)))
     max_results = int(config.get("max_results", 50))
     ranked = ranked[:max_results]
     write_csv(ranked)
     write_markdown(ranked, total=len(raw_jobs))
-    print(f"Generated jobs.csv and jobs.md. raw={len(raw_jobs)}, matched={len(ranked)}")
+    print(f"Generated raw_jobs.csv, jobs.csv and jobs.md. raw={len(raw_jobs)}, matched={len(ranked)}")
     send_feishu(build_message(ranked, total=len(raw_jobs)))
 
 
