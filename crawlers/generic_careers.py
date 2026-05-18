@@ -10,6 +10,25 @@ from bs4 import BeautifulSoup
 HEADERS = {"User-Agent": "Mozilla/5.0 job-crawler/1.0"}
 JOB_HINTS = ["intern", "growth", "marketing", "developer", "community", "product", "operation", "运营", "增长", "开发者", "海外", "出海", "市场", "实习", "校招", "AI", "API", "GTM", "SEM", "Affiliate"]
 BAD_LINK_HINTS = ["privacy", "terms", "login", "signin", "cookie", "about", "contact", "news"]
+UI_NOISE = ["筛选", "清除", "招聘项目", "全部职位", "Top Talent", "全MiniMax校招", "应届生招聘", "实习生招聘", "校园招聘", "社会招聘", "投递", "收藏"]
+TITLE_REJECT = ["招聘项目", "实习生招聘", "应届生招聘", "校园招聘", "社会招聘", "全部职位", "筛选", "清除", "Top Talent", "MiniMax校招", "全MiniMax"]
+TARGET_TITLE_WORDS = ["海外", "出海", "增长", "运营", "市场", "产品", "社区", "开发者", "GTM", "SEM", "Affiliate", "Marketing", "Growth", "Community", "Developer", "Product", "AI"]
+
+
+def is_noise(text: str) -> bool:
+    return any(x.lower() in (text or "").lower() for x in UI_NOISE)
+
+
+def is_bad_title(title: str) -> bool:
+    t = (title or "").strip()
+    if not t or len(t) > 80:
+        return True
+    return any(x.lower() in t.lower() for x in TITLE_REJECT)
+
+
+def is_target_title(title: str) -> bool:
+    low = (title or "").lower()
+    return any(w.lower() in low for w in TARGET_TITLE_WORDS)
 
 
 def looks_like_job(text: str, href: str = "") -> bool:
@@ -19,13 +38,15 @@ def looks_like_job(text: str, href: str = "") -> bool:
         return False
     if any(b in low for b in BAD_LINK_HINTS):
         return False
+    if is_noise(text) and not is_target_title(text):
+        return False
     return any(h.lower() in low for h in JOB_HINTS)
 
 
 def extract_location(text: str) -> str:
     locs = ["北京", "上海", "杭州", "深圳", "广州", "成都", "南京", "苏州", "武汉", "西安", "香港", "新加坡", "remote", "远程"]
     hit = [x for x in locs if x.lower() in (text or "").lower()]
-    return ", ".join(hit)
+    return ", ".join(dict.fromkeys(hit))
 
 
 def render_with_playwright(url: str, timeout: int = 20) -> str:
@@ -46,6 +67,25 @@ def render_with_playwright(url: str, timeout: int = 20) -> str:
         return ""
 
 
+def extract_titles_from_block(text: str) -> list[str]:
+    clean = re.sub(r"\s+", " ", text or "").strip()
+    titles: list[str] = []
+
+    # Chinese/English product, growth, marketing and operations roles.
+    patterns = [
+        r"[A-Za-z0-9\u4e00-\u9fa5 /+\-]{0,35}(?:海外|出海|增长|运营|市场|产品|社区|开发者|GTM|SEM|Affiliate|Marketing|Growth|Community|Developer|Product)[A-Za-z0-9\u4e00-\u9fa5 /+\-]{0,25}(?:实习生|实习|校招|助理|运营|市场|经理|专员)?",
+        r"[A-Za-z0-9\u4e00-\u9fa5 /+\-]{2,45}(?:Intern|Campus|New Grad)",
+    ]
+    for pat in patterns:
+        for m in re.finditer(pat, clean, flags=re.IGNORECASE):
+            title = m.group(0).strip(" -｜|，,。:：")
+            title = re.sub(r"^(筛选|清除|招聘项目|职位|岗位)\s*", "", title).strip()
+            if not is_bad_title(title) and is_target_title(title):
+                titles.append(title)
+
+    return list(dict.fromkeys(titles))[:3]
+
+
 def parse_html(name: str, url: str, html: str, source: str) -> list[dict]:
     soup = BeautifulSoup(html, "html.parser")
     jobs: list[dict] = []
@@ -55,7 +95,7 @@ def parse_html(name: str, url: str, html: str, source: str) -> list[dict]:
     for a in soup.find_all("a"):
         title = a.get_text(" ", strip=True)
         href = a.get("href") or ""
-        if not href or not looks_like_job(title, href):
+        if is_bad_title(title) or not looks_like_job(title, href):
             continue
         job_url = urljoin(url, href)
         parent = a.find_parent()
@@ -68,18 +108,15 @@ def parse_html(name: str, url: str, html: str, source: str) -> list[dict]:
 
     for node in soup.select("li, article, div"):
         text = node.get_text(" ", strip=True)
-        if len(text) < 8 or len(text) > 260:
+        if len(text) < 8 or len(text) > 900:
             continue
-        if not looks_like_job(text):
-            continue
-        title = re.split(r"[|｜·•\n]", text)[0].strip()
-        if len(title) > 120:
-            title = title[:120]
-        key = f"{name}:{title}:{extract_location(text)}"
-        if key in seen:
-            continue
-        seen.add(key)
-        jobs.append({"company": name, "job_title": title, "location": extract_location(text), "job_url": url, "source": source + "_textblock", "description": text, "posted_date": "", "crawled_at": crawled_at})
+        titles = extract_titles_from_block(text)
+        for title in titles:
+            key = f"{name}:{title}:{extract_location(text)}"
+            if key in seen:
+                continue
+            seen.add(key)
+            jobs.append({"company": name, "job_title": title, "location": extract_location(text), "job_url": url, "source": source + "_textblock", "description": text, "posted_date": "", "crawled_at": crawled_at})
     return jobs
 
 
